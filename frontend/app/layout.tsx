@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
+import ThemeProvider from "@/components/ThemeProvider";
+import { ToastProvider } from "@/components/ui";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -10,7 +12,7 @@ const geistSans = Geist({
 export const metadata: Metadata = {
   title: "KrishiMitra - AI-Powered Smart Farming Assistant",
   description:
-    "Detect crop diseases and receive AI-driven farming recommendations instantly.",
+    "Detect crop diseases and receive AI-driven farming recommendations instantly. Built for Indian farmers.",
 };
 
 export default function RootLayout({
@@ -19,9 +21,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col bg-white text-gray-800">
-        {children}
+    <html lang="en" className={`${geistSans.variable} h-full antialiased`} suppressHydrationWarning>
+      <body className="flex min-h-full flex-col">
+        <ThemeProvider>
+          {children}
+          <ToastProvider />
+        </ThemeProvider>
       </body>
     </html>
   );

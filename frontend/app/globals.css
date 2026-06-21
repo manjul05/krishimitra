@@ -1,9 +1,198 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme inline {
   --font-sans: var(--font-geist-sans);
+  --color-km-green: #1a5c2e;
+  --color-km-green-dark: #0d2e18;
+  --color-km-green-light: #e8f5ec;
+  --color-km-green-muted: #2d7a47;
+  --color-km-dark: #0d2e18;
+  --color-km-hero-start: #f0faf3;
+  --color-km-hero-end: #d4eedd;
+  --color-km-surface: #ffffff;
+  --color-km-border: #c5e0ce;
+  --radius-km: 14px;
+}
+
+:root {
+  --km-bg: #fafcfa;
+  --km-text: #1a2e1f;
+  --km-text-muted: #4a6352;
+  --km-card: rgba(255, 255, 255, 0.72);
+  --km-card-border: rgba(197, 224, 206, 0.6);
+  --km-shadow: 0 4px 24px rgba(26, 92, 46, 0.08);
+  --km-shadow-lg: 0 12px 40px rgba(26, 92, 46, 0.12);
+}
+
+.dark {
+  --km-bg: #0a1610;
+  --km-text: #e8f5ec;
+  --km-text-muted: #8fb89a;
+  --km-card: rgba(13, 46, 24, 0.65);
+  --km-card-border: rgba(45, 122, 71, 0.25);
+  --km-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+  --km-shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.4);
 }
 
 body {
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  background-color: var(--km-bg);
+  color: var(--km-text);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@keyframes km-bounce {
+  0%,
+  80%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes km-scan {
+  0% {
+    top: 0%;
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    top: 100%;
+    opacity: 0.6;
+  }
+}
+
+@keyframes km-pulse-ring {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0.7;
+  }
+}
+
+@keyframes km-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.km-typing-dot {
+  animation: km-bounce 1.2s infinite ease-in-out;
+}
+
+.km-typing-dot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.km-typing-dot:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.km-hero-glow {
+  background:
+    radial-gradient(ellipse 80% 60% at 50% -10%, rgba(26, 92, 46, 0.1), transparent),
+    radial-gradient(ellipse 40% 40% at 90% 20%, rgba(45, 122, 71, 0.08), transparent),
+    radial-gradient(ellipse 35% 35% at 5% 60%, rgba(26, 92, 46, 0.06), transparent),
+    linear-gradient(to bottom, var(--color-km-hero-start), var(--color-km-hero-end));
+}
+
+.dark .km-hero-glow {
+  background:
+    radial-gradient(ellipse 80% 60% at 50% -10%, rgba(45, 122, 71, 0.15), transparent),
+    radial-gradient(ellipse 40% 40% at 90% 20%, rgba(26, 92, 46, 0.1), transparent),
+    linear-gradient(to bottom, #0d1f14, #0a1610);
+}
+
+.km-section-label {
+  display: inline-block;
+  border-radius: 9999px;
+  background-color: var(--color-km-green-light);
+  padding: 0.375rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-km-green);
+}
+
+.dark .km-section-label {
+  background-color: rgba(26, 92, 46, 0.25);
+  color: #8fd4a5;
+}
+
+.km-glass {
+  background: var(--km-card);
+  border: 1px solid var(--km-card-border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: var(--km-shadow);
+}
+
+.km-glass-hover {
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.km-glass-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--km-shadow-lg);
+  border-color: rgba(26, 92, 46, 0.3);
+}
+
+.km-scan-line {
+  animation: km-scan 2.5s ease-in-out infinite;
+}
+
+.km-skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(197, 224, 206, 0.3) 25%,
+    rgba(232, 245, 236, 0.6) 50%,
+    rgba(197, 224, 206, 0.3) 75%
+  );
+  background-size: 200% 100%;
+  animation: km-shimmer 1.5s infinite;
+}
+
+.dark .km-skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(26, 92, 46, 0.2) 25%,
+    rgba(45, 122, 71, 0.35) 50%,
+    rgba(26, 92, 46, 0.2) 75%
+  );
+  background-size: 200% 100%;
+}
+
+.km-text-primary {
+  color: var(--km-text);
+}
+
+.km-text-muted {
+  color: var(--km-text-muted);
+}
+
+.dark .km-toast {
+  background: var(--km-card) !important;
+  color: var(--km-text) !important;
+  border: 1px solid var(--km-card-border) !important;
 }
