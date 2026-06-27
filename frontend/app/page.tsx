@@ -1,6 +1,7 @@
 import Card from "@/components/Card";
 import ChatPreview from "@/components/ChatPreview";
 import DiseaseDetectionDemo from "@/components/DiseaseDetectionDemo";
+import DiseaseGallery from "@/components/DiseaseGallery";
 import Footer from "@/components/Footer";
 import GovernmentSchemes from "@/components/GovernmentSchemes";
 import Hero from "@/components/Hero";
@@ -123,6 +124,7 @@ export default function Home() {
 
         <WeatherWidget />
         <HowItWorks />
+        <DiseaseGallery />
         <DiseaseDetectionDemo />
         <ChatPreview />
         <Testimonials />

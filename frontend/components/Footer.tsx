@@ -2,10 +2,9 @@ import Link from "next/link";
 
 const footerLinks = {
   Product: [
+    { href: "/#diseases", label: "Disease Library" },
+    { href: "/search", label: "Search by Crop" },
     { href: "/detect", label: "Disease Detection" },
-    { href: "#ai-chat", label: "AI Assistant" },
-    { href: "#weather", label: "Weather Alerts" },
-    { href: "#market-prices", label: "Market Prices" },
     { href: "/dashboard", label: "Dashboard" },
   ],
   Company: [

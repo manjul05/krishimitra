@@ -6,11 +6,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import ThemeToggle from "./ThemeToggle";
 
 const navLinks = [
-  { href: "#features", label: "Features" },
-  { href: "#weather", label: "Weather" },
-  { href: "#market-prices", label: "Prices" },
+  { href: "/#features", label: "Features" },
+  { href: "/#diseases", label: "Diseases" },
+  { href: "/search", label: "Search" },
+  { href: "/dashboard", label: "Dashboard" },
   { href: "/about", label: "About" },
-  { href: "/showcase", label: "UI Kit" },
 ];
 
 export default function Navbar() {
