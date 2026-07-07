@@ -8,6 +8,7 @@ import type {
   DiseaseCreatePayload,
   DiseaseUpdatePayload,
   HealthResponse,
+  PredictResponse,
   Stats,
 } from "@/types/disease";
 
@@ -112,6 +113,18 @@ export async function getStats(): Promise<Stats> {
     cache: "no-store",
   });
   return handleResponse<Stats>(res);
+}
+
+/** POST /api/predict — AI image disease detection */
+export async function predictDisease(image: File): Promise<PredictResponse> {
+  const formData = new FormData();
+  formData.append("image", image);
+
+  const res = await fetch(`${API_BASE_URL}/api/predict`, {
+    method: "POST",
+    body: formData,
+  });
+  return handleResponse<PredictResponse>(res);
 }
 
 export { ApiError };

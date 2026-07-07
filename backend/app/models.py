@@ -63,3 +63,28 @@ class ErrorResponse(BaseModel):
 
     success: bool = False
     message: str
+
+
+class PredictionResult(BaseModel):
+    """AI disease prediction from OpenRouter Vision."""
+
+    crop: str
+    disease: str
+    confidence: int = Field(..., ge=0, le=100)
+
+
+class DiseaseDetails(BaseModel):
+    """Disease advisory details from the database."""
+
+    symptoms: str
+    treatment: str
+    severity: str
+    image: str
+
+
+class PredictResponse(BaseModel):
+    """Response for POST /api/predict."""
+
+    success: bool = True
+    prediction: PredictionResult
+    details: Optional[DiseaseDetails] = None

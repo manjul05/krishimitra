@@ -44,3 +44,22 @@ export interface ApiError {
   success: false;
   message: string;
 }
+
+export interface PredictionResult {
+  crop: string;
+  disease: string;
+  confidence: number;
+}
+
+export interface DiseaseDetails {
+  symptoms: string;
+  treatment: string;
+  severity: string;
+  image: string;
+}
+
+export interface PredictResponse {
+  success: true;
+  prediction: PredictionResult;
+  details?: DiseaseDetails;
+}

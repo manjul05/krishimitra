@@ -54,7 +54,7 @@ async def validation_exception_handler(request, exc: RequestValidationError):
 
 @app.on_event("startup")
 def on_startup() -> None:
-    """Seed the in-memory database on application start."""
+    """Create database tables and seed data on first run."""
     db.init_db()
 
 
