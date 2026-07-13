@@ -16,11 +16,18 @@ load_dotenv()
 APP_NAME = "KrishiMitra API"
 APP_VERSION = "1.0.0"
 
+from app.limiter import limiter
+from slowapi.errors import RateLimitExceeded
+from slowapi import _rate_limit_exceeded_handler
+
 app = FastAPI(
     title=APP_NAME,
     version=APP_VERSION,
     description="AI-Powered Crop Disease Detection & Advisory Platform — REST API",
 )
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 
 # CORS — allow the Next.js frontend
 allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")

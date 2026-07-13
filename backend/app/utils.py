@@ -1,3 +1,4 @@
+print("DEBUG: utils.py loaded")
 """Utility helpers for the KrishiMitra backend."""
 
 from fastapi import HTTPException, Request
@@ -25,11 +26,17 @@ def bad_request(message: str = "Invalid request") -> HTTPException:
 
 
 async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
-    """Catch unhandled exceptions and return a 500 JSON response."""
-    return error_response(
+    """Catch unhandled exceptions and return detailed 500 JSON response for debugging."""
+    import traceback
+    traceback.print_exception(type(exc), exc, exc.__traceback__)
+    return JSONResponse(
         status_code=500,
-        message="Internal server error. Please try again later.",
+        content={
+            "error": str(exc),
+            "type": type(exc).__name__
+        },
     )
+
 
 
 async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:

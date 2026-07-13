@@ -25,6 +25,33 @@ class ApiError extends Error {
   }
 }
 
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  google_id?: string;
+  created_at: string;
+}
+
+export interface TokenResponse {
+  access_token: string;
+  token_type: string;
+}
+
+function getHeaders(contentType: string | null = "application/json"): HeadersInit {
+  const headers: Record<string, string> = {};
+  if (contentType) {
+    headers["Content-Type"] = contentType;
+  }
+  if (typeof window !== "undefined") {
+    const token = localStorage.getItem("token");
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+  }
+  return headers;
+}
+
 async function handleResponse<T>(response: Response): Promise<T> {
   if (response.ok) {
     if (response.status === 204) {
@@ -37,6 +64,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
   try {
     const body = await response.json();
     if (body?.message) message = body.message;
+    else if (body?.detail) message = body.detail;
   } catch {
     // response body is not JSON
   }
@@ -45,7 +73,9 @@ async function handleResponse<T>(response: Response): Promise<T> {
 
 /** GET /api/health */
 export async function getHealth(): Promise<HealthResponse> {
-  const res = await fetch(`${API_BASE_URL}/api/health`);
+  const res = await fetch(`${API_BASE_URL}/api/health`, {
+    headers: getHeaders(null),
+  });
   return handleResponse<HealthResponse>(res);
 }
 
@@ -53,6 +83,7 @@ export async function getHealth(): Promise<HealthResponse> {
 export async function getDiseases(): Promise<Disease[]> {
   const res = await fetch(`${API_BASE_URL}/api/diseases`, {
     cache: "no-store",
+    headers: getHeaders(null),
   });
   return handleResponse<Disease[]>(res);
 }
@@ -61,6 +92,7 @@ export async function getDiseases(): Promise<Disease[]> {
 export async function getDisease(id: number): Promise<Disease> {
   const res = await fetch(`${API_BASE_URL}/api/diseases/${id}`, {
     cache: "no-store",
+    headers: getHeaders(null),
   });
   return handleResponse<Disease>(res);
 }
@@ -71,7 +103,7 @@ export async function createDisease(
 ): Promise<Disease> {
   const res = await fetch(`${API_BASE_URL}/api/diseases`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: getHeaders(),
     body: JSON.stringify(payload),
   });
   return handleResponse<Disease>(res);
@@ -84,7 +116,7 @@ export async function updateDisease(
 ): Promise<Disease> {
   const res = await fetch(`${API_BASE_URL}/api/diseases/${id}`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: getHeaders(),
     body: JSON.stringify(payload),
   });
   return handleResponse<Disease>(res);
@@ -94,6 +126,7 @@ export async function updateDisease(
 export async function deleteDisease(id: number): Promise<void> {
   const res = await fetch(`${API_BASE_URL}/api/diseases/${id}`, {
     method: "DELETE",
+    headers: getHeaders(null),
   });
   return handleResponse<void>(res);
 }
@@ -103,6 +136,7 @@ export async function searchDisease(crop: string): Promise<Disease[]> {
   const params = new URLSearchParams({ crop });
   const res = await fetch(`${API_BASE_URL}/api/search?${params}`, {
     cache: "no-store",
+    headers: getHeaders(null),
   });
   return handleResponse<Disease[]>(res);
 }
@@ -111,6 +145,7 @@ export async function searchDisease(crop: string): Promise<Disease[]> {
 export async function getStats(): Promise<Stats> {
   const res = await fetch(`${API_BASE_URL}/api/stats`, {
     cache: "no-store",
+    headers: getHeaders(null),
   });
   return handleResponse<Stats>(res);
 }
@@ -122,9 +157,39 @@ export async function predictDisease(image: File): Promise<PredictResponse> {
 
   const res = await fetch(`${API_BASE_URL}/api/predict`, {
     method: "POST",
+    headers: getHeaders(null),
     body: formData,
   });
   return handleResponse<PredictResponse>(res);
 }
 
+/** POST /api/auth/register */
+export async function registerUser(payload: any): Promise<User> {
+  const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
+    method: "POST",
+    headers: getHeaders(),
+    body: JSON.stringify(payload),
+  });
+  return handleResponse<User>(res);
+}
+
+/** POST /api/auth/login */
+export async function loginUser(payload: any): Promise<TokenResponse> {
+  const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
+    method: "POST",
+    headers: getHeaders(),
+    body: JSON.stringify(payload),
+  });
+  return handleResponse<TokenResponse>(res);
+}
+
+/** GET /api/auth/me */
+export async function getCurrentUser(): Promise<User> {
+  const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
+    headers: getHeaders(null),
+  });
+  return handleResponse<User>(res);
+}
+
 export { ApiError };
+

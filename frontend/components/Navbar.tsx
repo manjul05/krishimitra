@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ThemeToggle from "./ThemeToggle";
+import { useAuth } from "@/context/AuthContext";
 
 const navLinks = [
   { href: "/#features", label: "Features" },
@@ -14,7 +15,9 @@ const navLinks = [
 ];
 
 export default function Navbar() {
+  const { currentUser, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+
 
   return (
     <nav className="sticky top-0 z-50 border-b border-km-border/60 km-glass px-4 py-3.5 md:px-10">
@@ -48,14 +51,37 @@ export default function Navbar() {
 
           <ThemeToggle />
 
-          <Link href="/login" className="hidden sm:block">
-            <motion.span
-              className="inline-flex rounded-xl bg-km-green px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-km-green/20 transition-all hover:bg-km-green-dark hover:shadow-md hover:shadow-km-green/25"
-              whileTap={{ scale: 0.95 }}
-            >
-              Login
-            </motion.span>
-          </Link>
+          {currentUser ? (
+            <div className="hidden sm:flex items-center gap-3">
+              <Link href="/profile">
+                <motion.span
+                  className="inline-flex rounded-xl border border-km-border/60 bg-white/30 dark:bg-white/10 px-4 py-2 text-sm font-semibold km-text-primary hover:bg-km-green-light/40 dark:border-km-green/20"
+                  whileTap={{ scale: 0.95 }}
+                >
+                  👤 {currentUser.name.split(" ")[0]}
+                </motion.span>
+              </Link>
+              <button
+                onClick={() => {
+                  logout();
+                  window.location.href = "/";
+                }}
+                className="text-sm font-semibold text-red-600 hover:text-red-500 hover:underline cursor-pointer"
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <Link href="/login" className="hidden sm:block">
+              <motion.span
+                className="inline-flex rounded-xl bg-km-green px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-km-green/20 transition-all hover:bg-km-green-dark hover:shadow-md hover:shadow-km-green/25"
+                whileTap={{ scale: 0.95 }}
+              >
+                Login
+              </motion.span>
+            </Link>
+          )}
+
 
           <button
             type="button"
@@ -97,15 +123,42 @@ export default function Navbar() {
                   </Link>
                 </li>
               ))}
-              <li className="sm:hidden">
-                <Link
-                  href="/login"
-                  onClick={() => setMobileOpen(false)}
-                  className="mt-1 block rounded-xl bg-km-green px-4 py-2.5 text-center text-sm font-semibold text-white"
-                >
-                  Login
-                </Link>
-              </li>
+              {currentUser ? (
+                <>
+                  <li>
+                    <Link
+                      href="/profile"
+                      onClick={() => setMobileOpen(false)}
+                      className="block rounded-lg px-2 py-2.5 text-sm font-medium km-text-muted transition-colors hover:bg-km-green-light/50 hover:text-km-green dark:hover:bg-km-green/10"
+                    >
+                      👤 Profile ({currentUser.name})
+                    </Link>
+                  </li>
+                  <li className="sm:hidden">
+                    <button
+                      onClick={() => {
+                        setMobileOpen(false);
+                        logout();
+                        window.location.href = "/";
+                      }}
+                      className="mt-1 w-full block rounded-xl bg-red-600 px-4 py-2.5 text-center text-sm font-semibold text-white cursor-pointer"
+                    >
+                      Logout
+                    </button>
+                  </li>
+                </>
+              ) : (
+                <li className="sm:hidden">
+                  <Link
+                    href="/login"
+                    onClick={() => setMobileOpen(false)}
+                    className="mt-1 block rounded-xl bg-km-green px-4 py-2.5 text-center text-sm font-semibold text-white"
+                  >
+                    Login
+                  </Link>
+                </li>
+              )}
+
             </ul>
           </motion.div>
         )}

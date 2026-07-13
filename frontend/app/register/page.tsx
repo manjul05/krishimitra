@@ -1,47 +1,27 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import { Button, Input, showSuccessToast, showErrorToast } from "@/components/ui";
-import { useAuth } from "@/context/AuthContext";
+import { registerUser } from "@/services/api";
 
-export default function LoginPage() {
-  const { login, currentUser, setCurrentUserByToken } = useAuth();
+export default function RegisterPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string }>({});
   const [submitting, setSubmitting] = useState(false);
-
-  // Check if a JWT token is passed in the URL (Google OAuth callback redirect)
-  useEffect(() => {
-    const token = searchParams.get("token");
-    if (token) {
-      setCurrentUserByToken(token)
-        .then(() => {
-          showSuccessToast("Google login successful!");
-          router.push("/dashboard");
-        })
-        .catch((err) => {
-          showErrorToast(err instanceof Error ? err.message : "Google authentication failed");
-        });
-      return;
-    }
-
-    if (currentUser) {
-      router.push("/dashboard");
-    }
-  }, [currentUser, searchParams, setCurrentUserByToken, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const nextErrors: typeof errors = {};
 
+    if (name.trim().length === 0) nextErrors.name = "Name is required";
     if (!email.includes("@")) nextErrors.email = "Enter a valid email address";
     if (password.length < 8) nextErrors.password = "Password must be at least 8 characters";
 
@@ -50,11 +30,11 @@ export default function LoginPage() {
 
     setSubmitting(true);
     try {
-      await login(email, password);
-      showSuccessToast("Login successful! Redirecting...");
-      router.push("/dashboard");
+      await registerUser({ name, email, password });
+      showSuccessToast("Account created successfully! Please sign in.");
+      router.push("/login");
     } catch (err: any) {
-      showErrorToast(err instanceof Error ? err.message : "Invalid email or password");
+      showErrorToast(err instanceof Error ? err.message : "Registration failed. Try again.");
     } finally {
       setSubmitting(false);
     }
@@ -78,10 +58,10 @@ export default function LoginPage() {
               🌾
             </span>
             <h1 className="mb-2 text-2xl font-bold km-text-primary sm:text-3xl">
-              Login to KrishiMitra
+              Create an Account
             </h1>
             <p className="text-sm km-text-muted sm:text-base">
-              Sign in to access disease detection, AI advice, and your dashboard.
+              Register to save scans, track crop status, and get farm advisories.
             </p>
           </div>
 
@@ -90,6 +70,20 @@ export default function LoginPage() {
             className="rounded-2xl border border-km-border km-glass p-5 sm:p-6 dark:border-km-green/20"
           >
             <div className="flex flex-col gap-4 sm:gap-5">
+              <Input
+                label="Full Name"
+                type="text"
+                placeholder="Enter your name"
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  if (errors.name) setErrors((prev) => ({ ...prev, name: undefined }));
+                }}
+                error={errors.name}
+                autoComplete="name"
+                disabled={submitting}
+              />
+
               <Input
                 label="Email Address"
                 type="email"
@@ -107,19 +101,19 @@ export default function LoginPage() {
               <Input
                 label="Password"
                 type="password"
-                placeholder="Enter your password"
+                placeholder="Minimum 8 characters"
                 value={password}
                 onChange={(e) => {
                   setPassword(e.target.value);
                   if (errors.password) setErrors((prev) => ({ ...prev, password: undefined }));
                 }}
                 error={errors.password}
-                autoComplete="current-password"
+                autoComplete="new-password"
                 disabled={submitting}
               />
 
               <Button type="submit" className="w-full" disabled={submitting}>
-                {submitting ? "Signing In..." : "Sign In"}
+                {submitting ? "Creating Account..." : "Register"}
               </Button>
 
               <div className="relative my-1 text-center text-xs">
@@ -156,9 +150,9 @@ export default function LoginPage() {
             </div>
 
             <p className="mt-5 text-center text-sm km-text-muted">
-              Don&apos;t have an account?{" "}
-              <Link href="/register" className="font-medium text-km-green hover:underline">
-                Register here
+              Already have an account?{" "}
+              <Link href="/login" className="font-medium text-km-green hover:underline">
+                Login here
               </Link>
             </p>
           </form>
@@ -168,4 +162,3 @@ export default function LoginPage() {
     </div>
   );
 }
-

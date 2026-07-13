@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import ThemeProvider from "@/components/ThemeProvider";
+import { AuthProvider } from "@/context/AuthContext";
 import { ToastProvider } from "@/components/ui";
 import "./globals.css";
 
@@ -24,10 +25,13 @@ export default function RootLayout({
     <html lang="en" className={`${geistSans.variable} h-full antialiased`} suppressHydrationWarning>
       <body className="flex min-h-full flex-col">
         <ThemeProvider>
-          {children}
-          <ToastProvider />
+          <AuthProvider>
+            {children}
+            <ToastProvider />
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>
   );
 }
+

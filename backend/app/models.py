@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class DiseaseBase(BaseModel):
@@ -88,3 +88,51 @@ class PredictResponse(BaseModel):
     success: bool = True
     prediction: PredictionResult
     details: Optional[DiseaseDetails] = None
+
+
+class UserRegister(BaseModel):
+    """Schema for user registration request."""
+
+    name: str = Field(..., min_length=1, description="User's full name")
+    email: str = Field(..., description="User's email address")
+    password: str = Field(..., min_length=8, description="Password (minimum 8 characters)")
+
+    @classmethod
+    def validate_email(cls, email: str) -> str:
+        import re
+        if not re.match(r"^[\w\.-]+@[\w\.-]+\.\w+$", email):
+            raise ValueError("Invalid email address format")
+        return email
+
+    # We use a Pydantic model validator or field_validator to check the email format
+    @field_validator("email")
+    @classmethod
+    def check_email(cls, v: str) -> str:
+        return cls.validate_email(v)
+
+
+class UserLogin(BaseModel):
+    """Schema for user login request."""
+
+    email: str = Field(..., description="User's email address")
+    password: str = Field(..., description="Password")
+
+
+class TokenResponse(BaseModel):
+    """Schema for login response containing JWT token."""
+
+    access_token: str
+    token_type: str = "bearer"
+
+
+class UserResponse(BaseModel):
+    """Schema for user info returned by the API."""
+
+    id: int
+    name: str
+    email: str
+    google_id: Optional[str] = None
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+

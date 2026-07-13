@@ -17,10 +17,36 @@ const severityStyles: Record<string, string> = {
   low: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
 };
 
+const SEVERITY_OPTIONS = ["Low", "Moderate", "High"] as const;
+type SeverityOption = (typeof SEVERITY_OPTIONS)[number];
+
+function normalizeSeverity(severity: string): SeverityOption {
+  const lower = severity.trim().toLowerCase();
+  if (lower === "low") return "Low";
+  if (lower === "high") return "High";
+  return "Moderate";
+}
+
+function diseaseToEditForm(data: Disease): DiseaseUpdatePayload {
+  return {
+    crop: data.crop,
+    disease: data.disease,
+    symptoms: data.symptoms,
+    treatment: data.treatment,
+    severity: normalizeSeverity(data.severity),
+    image: data.image,
+  };
+}
+
+function parseDiseaseId(rawId: string | string[] | undefined): number {
+  const value = Array.isArray(rawId) ? rawId[0] : rawId;
+  return Number(value);
+}
+
 export default function DiseaseDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const id = Number(params.id);
+  const id = parseDiseaseId(params.id);
 
   const [disease, setDisease] = useState<Disease | null>(null);
   const [loading, setLoading] = useState(true);
@@ -42,14 +68,7 @@ export default function DiseaseDetailPage() {
     try {
       const data = await getDisease(id);
       setDisease(data);
-      setEditForm({
-        crop: data.crop,
-        disease: data.disease,
-        symptoms: data.symptoms,
-        treatment: data.treatment,
-        severity: data.severity,
-        image: data.image,
-      });
+      setEditForm(diseaseToEditForm(data));
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to load disease";
       setError(msg);
@@ -63,19 +82,35 @@ export default function DiseaseDetailPage() {
     fetchDisease();
   }, [fetchDisease]);
 
+  const handleStartEdit = () => {
+    if (disease) {
+      setEditForm(diseaseToEditForm(disease));
+    }
+    setEditing(true);
+  };
+
   const handleSave = async () => {
     if (!disease) return;
     setSaving(true);
     try {
       const updated = await updateDisease(disease.id, editForm);
       setDisease(updated);
+      setEditForm(diseaseToEditForm(updated));
+      await fetchDisease();
       setEditing(false);
-      showSuccessToast("Disease Updated");
+      showSuccessToast("Disease Updated Successfully");
     } catch (err) {
       showErrorToast(err instanceof Error ? err.message : "Failed to update disease");
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleCancel = () => {
+    if (disease) {
+      setEditForm(diseaseToEditForm(disease));
+    }
+    setEditing(false);
   };
 
   const handleDelete = async () => {
@@ -96,9 +131,13 @@ export default function DiseaseDetailPage() {
     }
   };
 
+  const displaySeverity = editing
+    ? normalizeSeverity(editForm.severity ?? disease?.severity ?? "Moderate")
+    : normalizeSeverity(disease?.severity ?? "Moderate");
+  const displayImage = editing ? (editForm.image ?? "") : (disease?.image ?? "");
   const severityClass =
-    severityStyles[disease?.severity.toLowerCase() ?? ""] ??
-    "bg-gray-100 text-gray-700";
+    severityStyles[displaySeverity.toLowerCase()] ??
+    "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300";
 
   return (
     <div className="flex min-h-screen flex-col overflow-x-hidden">
@@ -139,11 +178,11 @@ export default function DiseaseDetailPage() {
             >
               <div className="overflow-hidden rounded-2xl border border-km-border km-glass dark:border-km-green/20">
                 <div className="relative h-48 sm:h-64 md:h-72">
-                  {disease.image ? (
+                  {displayImage ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={disease.image}
-                      alt={`${disease.disease} on ${disease.crop}`}
+                      src={displayImage}
+                      alt={`${editing ? (editForm.disease ?? disease.disease) : disease.disease} on ${editing ? (editForm.crop ?? disease.crop) : disease.crop}`}
                       className="h-full w-full object-cover"
                     />
                   ) : (
@@ -154,42 +193,58 @@ export default function DiseaseDetailPage() {
                   <span
                     className={`absolute right-4 top-4 rounded-full px-3 py-1 text-sm font-semibold ${severityClass}`}
                   >
-                    {disease.severity} Severity
+                    {displaySeverity} Severity
                   </span>
                 </div>
 
                 <div className="p-5 sm:p-8">
-                  <p className="mb-1 text-sm font-semibold uppercase tracking-wide text-km-green">
-                    {disease.crop}
-                  </p>
-                  <h1 className="mb-4 text-2xl font-bold km-text-primary sm:text-3xl md:text-4xl">
-                    {disease.disease}
-                  </h1>
+                  {editing ? (
+                    <>
+                      <div className="mb-1">
+                        <label htmlFor="edit-crop" className="mb-1 block text-xs font-medium km-text-muted">
+                          Crop
+                        </label>
+                        <input
+                          id="edit-crop"
+                          type="text"
+                          value={editForm.crop ?? ""}
+                          onChange={(e) => setEditForm({ ...editForm, crop: e.target.value })}
+                          className="w-full rounded-lg border border-km-border px-3 py-2 text-sm font-semibold uppercase tracking-wide text-km-green dark:border-km-green/20 dark:bg-km-green-dark/40"
+                        />
+                      </div>
+                      <div className="mb-4">
+                        <label htmlFor="edit-disease" className="mb-1 block text-xs font-medium km-text-muted">
+                          Disease
+                        </label>
+                        <input
+                          id="edit-disease"
+                          type="text"
+                          value={editForm.disease ?? ""}
+                          onChange={(e) => setEditForm({ ...editForm, disease: e.target.value })}
+                          className="w-full rounded-lg border border-km-border px-3 py-2 text-2xl font-bold km-text-primary dark:border-km-green/20 dark:bg-km-green-dark/40 sm:text-3xl md:text-4xl"
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p className="mb-1 text-sm font-semibold uppercase tracking-wide text-km-green">
+                        {disease.crop}
+                      </p>
+                      <h1 className="mb-4 text-2xl font-bold km-text-primary sm:text-3xl md:text-4xl">
+                        {disease.disease}
+                      </h1>
+                    </>
+                  )}
 
                   <div className="mb-6 grid gap-4 sm:grid-cols-2">
                     {editing ? (
                       <>
-                        <div className="sm:col-span-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                          <div>
-                            <label className="mb-1 block text-xs font-medium km-text-muted">Crop</label>
-                            <input
-                              value={editForm.crop ?? ""}
-                              onChange={(e) => setEditForm({ ...editForm, crop: e.target.value })}
-                              className="w-full rounded-lg border border-km-border px-3 py-2 text-sm dark:border-km-green/20 dark:bg-km-green-dark/40"
-                            />
-                          </div>
-                          <div>
-                            <label className="mb-1 block text-xs font-medium km-text-muted">Disease</label>
-                            <input
-                              value={editForm.disease ?? ""}
-                              onChange={(e) => setEditForm({ ...editForm, disease: e.target.value })}
-                              className="w-full rounded-lg border border-km-border px-3 py-2 text-sm dark:border-km-green/20 dark:bg-km-green-dark/40"
-                            />
-                          </div>
-                        </div>
                         <div>
-                          <label className="mb-1 block text-xs font-medium km-text-muted">Symptoms</label>
+                          <label htmlFor="edit-symptoms" className="mb-1 block text-xs font-medium km-text-muted">
+                            Symptoms
+                          </label>
                           <textarea
+                            id="edit-symptoms"
                             value={editForm.symptoms ?? ""}
                             onChange={(e) => setEditForm({ ...editForm, symptoms: e.target.value })}
                             rows={3}
@@ -197,11 +252,46 @@ export default function DiseaseDetailPage() {
                           />
                         </div>
                         <div>
-                          <label className="mb-1 block text-xs font-medium km-text-muted">Treatment</label>
+                          <label htmlFor="edit-treatment" className="mb-1 block text-xs font-medium km-text-muted">
+                            Treatment
+                          </label>
                           <textarea
+                            id="edit-treatment"
                             value={editForm.treatment ?? ""}
                             onChange={(e) => setEditForm({ ...editForm, treatment: e.target.value })}
                             rows={3}
+                            className="w-full rounded-lg border border-km-border px-3 py-2 text-sm dark:border-km-green/20 dark:bg-km-green-dark/40"
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="edit-severity" className="mb-1 block text-xs font-medium km-text-muted">
+                            Severity
+                          </label>
+                          <select
+                            id="edit-severity"
+                            value={normalizeSeverity(editForm.severity ?? "Moderate")}
+                            onChange={(e) =>
+                              setEditForm({ ...editForm, severity: e.target.value as SeverityOption })
+                            }
+                            className="w-full rounded-lg border border-km-border px-3 py-2 text-sm dark:border-km-green/20 dark:bg-km-green-dark/40"
+                          >
+                            {SEVERITY_OPTIONS.map((option) => (
+                              <option key={option} value={option}>
+                                {option}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label htmlFor="edit-image" className="mb-1 block text-xs font-medium km-text-muted">
+                            Image URL
+                          </label>
+                          <input
+                            id="edit-image"
+                            type="url"
+                            value={editForm.image ?? ""}
+                            onChange={(e) => setEditForm({ ...editForm, image: e.target.value })}
+                            placeholder="https://example.com/image.jpg"
                             className="w-full rounded-lg border border-km-border px-3 py-2 text-sm dark:border-km-green/20 dark:bg-km-green-dark/40"
                           />
                         </div>
@@ -246,7 +336,8 @@ export default function DiseaseDetailPage() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => setEditing(false)}
+                          onClick={handleCancel}
+                          disabled={saving}
                           className="rounded-xl border border-km-border px-4 py-2 text-sm font-semibold km-text-primary hover:bg-km-green-light/30 dark:border-km-green/30"
                         >
                           Cancel
@@ -256,7 +347,7 @@ export default function DiseaseDetailPage() {
                       <>
                         <button
                           type="button"
-                          onClick={() => setEditing(true)}
+                          onClick={handleStartEdit}
                           className="rounded-xl border border-km-border px-4 py-2 text-sm font-semibold text-km-green transition-colors hover:bg-km-green-light dark:border-km-green/30 dark:hover:bg-km-green/10"
                         >
                           Edit Record

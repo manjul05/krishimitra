@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import DiseaseCard from "@/components/DiseaseCard";
@@ -10,16 +11,27 @@ import DiseaseForm from "@/components/DiseaseForm";
 import ErrorState from "@/components/ErrorState";
 import { Loader, showErrorToast } from "@/components/ui";
 import { getDiseases, getStats } from "@/services/api";
+import { useAuth } from "@/context/AuthContext";
 import type { Disease, Stats } from "@/types/disease";
 
 export default function DashboardPage() {
+  const { currentUser, loading } = useAuth();
+  const router = useRouter();
+
   const [stats, setStats] = useState<Stats | null>(null);
   const [diseases, setDiseases] = useState<Disease[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Redirect to login if user is not authenticated
+  useEffect(() => {
+    if (!loading && !currentUser) {
+      router.push("/login");
+    }
+  }, [currentUser, loading, router]);
+
   const fetchData = useCallback(async () => {
-    setLoading(true);
+    setDataLoading(true);
     setError(null);
     try {
       const [statsData, diseasesData] = await Promise.all([
@@ -33,13 +45,28 @@ export default function DashboardPage() {
       setError(msg);
       showErrorToast(msg);
     } finally {
-      setLoading(false);
+      setDataLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (currentUser) {
+      fetchData();
+    }
+  }, [fetchData, currentUser]);
+
+  if (loading || !currentUser) {
+    return (
+      <div className="flex min-h-screen flex-col overflow-x-hidden">
+        <Navbar />
+        <main className="flex flex-1 items-center justify-center px-4 py-8">
+          <Loader size="lg" label="Checking authentication..." />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
 
   return (
     <div className="flex min-h-screen flex-col overflow-x-hidden">
@@ -56,7 +83,7 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          {loading && (
+          {dataLoading && (
             <div className="space-y-8">
               <div className="flex justify-center py-4">
                 <Loader size="lg" label="Loading dashboard" />
@@ -65,11 +92,12 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {!loading && error && (
+          {!dataLoading && error && (
             <ErrorState message={error} onRetry={fetchData} />
           )}
 
-          {!loading && !error && stats && (
+          {!dataLoading && !error && stats && (
+
             <>
               <div className="mb-10">
                 <StatsCards stats={stats} />
