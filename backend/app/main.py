@@ -3,7 +3,7 @@
 import os
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -49,8 +49,11 @@ app.add_exception_handler(Exception, global_exception_handler)
 
 
 @app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request, exc: RequestValidationError):
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
     """Return 400 for Pydantic / request validation errors."""
+    if "/api/ai/advisor" in str(request.url):
+        return error_response(status_code=400, message="Unable to generate AI response.")
+        
     errors = exc.errors()
     first = errors[0] if errors else {}
     field = " -> ".join(str(loc) for loc in first.get("loc", []))

@@ -6,6 +6,8 @@ import Navbar from "@/components/Navbar";
 import { Button, Loader, showErrorToast, showSuccessToast } from "@/components/ui";
 import { ApiError, predictDisease } from "@/services/api";
 import type { PredictResponse } from "@/types/disease";
+import AIAdvisor from "@/components/AIAdvisor";
+
 
 const severityStyles: Record<string, string> = {
   high: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
@@ -147,76 +149,86 @@ export default function DetectPage() {
             )}
 
             {result && !scanning && (
-              <div className="mt-8 overflow-hidden rounded-2xl border border-km-green/30 bg-km-green-light/20 dark:border-km-green/20 dark:bg-km-green/10">
-                <div className="grid grid-cols-1 md:grid-cols-2">
-                  <div className="relative bg-km-green-light/30 p-4 dark:bg-km-green/10">
-                    {result.details?.image ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={result.details.image}
-                        alt={`${result.prediction.disease} reference`}
-                        className="aspect-square w-full rounded-xl object-cover"
-                      />
-                    ) : preview ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={preview}
-                        alt="Uploaded crop"
-                        className="aspect-square w-full rounded-xl object-cover"
-                      />
-                    ) : (
-                      <div className="flex aspect-square items-center justify-center rounded-xl bg-km-green-light/50 text-5xl dark:bg-km-green/20">
-                        🌿
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="p-5 sm:p-6">
-                    <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-                      <span className="rounded-full bg-km-green/10 px-3 py-1 text-xs font-bold text-km-green">
-                        ✓ Result Found
-                      </span>
-                      <span className="text-2xl font-bold text-km-green">
-                        {result.prediction.confidence}%
-                      </span>
+              <div className="space-y-8">
+                <div className="mt-8 overflow-hidden rounded-2xl border border-km-green/30 bg-km-green-light/20 dark:border-km-green/20 dark:bg-km-green/10">
+                  <div className="grid grid-cols-1 md:grid-cols-2">
+                    <div className="relative bg-km-green-light/30 p-4 dark:bg-km-green/10">
+                      {result.details?.image ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={result.details.image}
+                          alt={`${result.prediction.disease} reference`}
+                          className="aspect-square w-full rounded-xl object-cover"
+                        />
+                      ) : preview ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={preview}
+                          alt="Uploaded crop"
+                          className="aspect-square w-full rounded-xl object-cover"
+                        />
+                      ) : (
+                        <div className="flex aspect-square items-center justify-center rounded-xl bg-km-green-light/50 text-5xl dark:bg-km-green/20">
+                          🌿
+                        </div>
+                      )}
                     </div>
 
-                    <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-km-green">
-                      {result.prediction.crop}
-                    </p>
-                    <h2 className="mb-3 text-xl font-bold km-text-primary sm:text-2xl">
-                      {result.prediction.disease}
-                    </h2>
-
-                    {result.details ? (
-                      <>
-                        <span
-                          className={`mb-4 inline-block rounded-lg px-2.5 py-1 text-xs font-semibold ${getSeverityClass(result.details.severity)}`}
-                        >
-                          Severity: {result.details.severity}
+                    <div className="p-5 sm:p-6">
+                      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+                        <span className="rounded-full bg-km-green/10 px-3 py-1 text-xs font-bold text-km-green">
+                          ✓ Result Found
                         </span>
+                        <span className="text-2xl font-bold text-km-green">
+                          {result.prediction.confidence}%
+                        </span>
+                      </div>
 
-                        <div className="mb-4">
-                          <p className="mb-1 text-sm font-semibold km-text-primary">Symptoms</p>
-                          <p className="text-sm leading-relaxed km-text-muted">
-                            {result.details.symptoms}
-                          </p>
-                        </div>
-
-                        <div>
-                          <p className="mb-1 text-sm font-semibold km-text-primary">Treatment</p>
-                          <p className="text-sm leading-relaxed km-text-muted">
-                            {result.details.treatment}
-                          </p>
-                        </div>
-                      </>
-                    ) : (
-                      <p className="text-sm leading-relaxed km-text-muted">
-                        AI prediction complete. No matching disease record was found in the
-                        database for detailed symptoms and treatment.
+                      <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-km-green">
+                        {result.prediction.crop}
                       </p>
-                    )}
+                      <h2 className="mb-3 text-xl font-bold km-text-primary sm:text-2xl">
+                        {result.prediction.disease}
+                      </h2>
+
+                      {result.details ? (
+                        <>
+                          <span
+                            className={`mb-4 inline-block rounded-lg px-2.5 py-1 text-xs font-semibold ${getSeverityClass(result.details.severity)}`}
+                          >
+                            Severity: {result.details.severity}
+                          </span>
+
+                          <div className="mb-4">
+                            <p className="mb-1 text-sm font-semibold km-text-primary">Symptoms</p>
+                            <p className="text-sm leading-relaxed km-text-muted">
+                              {result.details.symptoms}
+                            </p>
+                          </div>
+
+                          <div>
+                            <p className="mb-1 text-sm font-semibold km-text-primary">Treatment</p>
+                            <p className="text-sm leading-relaxed km-text-muted">
+                              {result.details.treatment}
+                            </p>
+                          </div>
+                        </>
+                      ) : (
+                        <p className="text-sm leading-relaxed km-text-muted">
+                          AI prediction complete. No matching disease record was found in the
+                          database for detailed symptoms and treatment.
+                        </p>
+                      )}
+                    </div>
                   </div>
+                </div>
+
+                <div className="border-t border-km-border/40 pt-8 dark:border-km-green/20">
+                  <AIAdvisor
+                    key={`${result.prediction.crop}-${result.prediction.disease}`}
+                    initialCrop={result.prediction.crop}
+                    initialDisease={result.prediction.disease}
+                  />
                 </div>
               </div>
             )}
