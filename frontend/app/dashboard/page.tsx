@@ -8,6 +8,7 @@ import Navbar from "@/components/Navbar";
 import DiseaseCard from "@/components/DiseaseCard";
 import StatsCards, { StatsCardsSkeleton } from "@/components/StatsCards";
 import DiseaseForm from "@/components/DiseaseForm";
+import EmptyState from "@/components/EmptyState";
 import ErrorState from "@/components/ErrorState";
 import { Loader, showErrorToast } from "@/components/ui";
 import { getDiseases, getStats } from "@/services/api";
@@ -30,9 +31,8 @@ export default function DashboardPage() {
     }
   }, [currentUser, loading, router]);
 
-  const fetchData = useCallback(async () => {
+  const handleRefresh = useCallback(async () => {
     setDataLoading(true);
-    setError(null);
     try {
       const [statsData, diseasesData] = await Promise.all([
         getStats(),
@@ -40,6 +40,7 @@ export default function DashboardPage() {
       ]);
       setStats(statsData);
       setDiseases(diseasesData.slice(0, 4));
+      setError(null);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to load dashboard";
       setError(msg);
@@ -50,10 +51,34 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
-    if (currentUser) {
-      fetchData();
-    }
-  }, [fetchData, currentUser]);
+    if (!currentUser) return;
+    let active = true;
+
+    Promise.all([getStats(), getDiseases()])
+      .then(([statsData, diseasesData]) => {
+        if (active) {
+          setStats(statsData);
+          setDiseases(diseasesData.slice(0, 4));
+          setError(null);
+        }
+      })
+      .catch((err) => {
+        if (active) {
+          const msg = err instanceof Error ? err.message : "Failed to load dashboard";
+          setError(msg);
+          showErrorToast(msg);
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setDataLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [currentUser]);
 
   if (loading || !currentUser) {
     return (
@@ -67,20 +92,26 @@ export default function DashboardPage() {
     );
   }
 
-
   return (
     <div className="flex min-h-screen flex-col overflow-x-hidden">
       <Navbar />
       <main className="flex-1 px-4 py-8 sm:py-10 md:px-10 md:py-12">
         <div className="mx-auto max-w-6xl">
-          <div className="mb-8 sm:mb-10">
-            <p className="km-section-label mb-3">Dashboard</p>
-            <h1 className="mb-2 text-2xl font-bold km-text-primary sm:text-3xl md:text-4xl">
-              Disease Analytics Dashboard
-            </h1>
-            <p className="max-w-2xl text-sm km-text-muted sm:text-base md:text-lg">
-              Real-time statistics and recent disease records from the KrishiMitra API.
-            </p>
+          <div className="mb-8 flex flex-col gap-4 sm:mb-10 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="km-section-label mb-3">Dashboard</p>
+              <h1 className="mb-2 text-2xl font-bold km-text-primary sm:text-3xl md:text-4xl">
+                Disease Analytics Dashboard
+              </h1>
+              <p className="max-w-2xl text-sm km-text-muted sm:text-base md:text-lg">
+                Real-time statistics and recent disease records from the KrishiMitra API.
+              </p>
+            </div>
+            <div className="shrink-0 rounded-2xl border border-km-border/60 km-glass px-4 py-3 dark:border-km-green/20">
+              <p className="text-xs font-semibold text-km-green">Logged In User</p>
+              <p className="text-sm font-bold km-text-primary">{currentUser.name}</p>
+              <p className="text-xs km-text-muted">{currentUser.email}</p>
+            </div>
           </div>
 
           {dataLoading && (
@@ -93,11 +124,10 @@ export default function DashboardPage() {
           )}
 
           {!dataLoading && error && (
-            <ErrorState message={error} onRetry={fetchData} />
+            <ErrorState message={error} onRetry={handleRefresh} />
           )}
 
           {!dataLoading && !error && stats && (
-
             <>
               <div className="mb-10">
                 <StatsCards stats={stats} />
@@ -105,7 +135,7 @@ export default function DashboardPage() {
 
               <section className="mb-8 rounded-2xl border border-km-border km-glass p-5 sm:p-6 dark:border-km-green/20">
                 <h2 className="mb-4 text-lg font-semibold km-text-primary">Add New Disease</h2>
-                <DiseaseForm onSuccess={fetchData} />
+                <DiseaseForm onSuccess={handleRefresh} />
               </section>
 
               <section className="mb-8">
@@ -120,11 +150,20 @@ export default function DashboardPage() {
                     View All
                   </Link>
                 </div>
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                  {diseases.map((disease, i) => (
-                    <DiseaseCard key={disease.id} disease={disease} index={i} />
-                  ))}
-                </div>
+                {diseases.length === 0 ? (
+                  <EmptyState
+                    title="No recent diseases"
+                    description="No disease records found in the database yet."
+                    actionLabel="Refresh"
+                    onAction={handleRefresh}
+                  />
+                ) : (
+                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                    {diseases.map((disease, i) => (
+                      <DiseaseCard key={disease.id} disease={disease} index={i} />
+                    ))}
+                  </div>
+                )}
               </section>
 
               <section className="rounded-2xl border border-km-border km-glass p-5 sm:p-6 dark:border-km-green/20">
@@ -143,7 +182,7 @@ export default function DashboardPage() {
                         action.label === "Refresh Stats"
                           ? (e) => {
                               e.preventDefault();
-                              fetchData();
+                              handleRefresh();
                             }
                           : undefined
                       }

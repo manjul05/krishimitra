@@ -163,8 +163,19 @@ export async function predictDisease(image: File): Promise<PredictResponse> {
   return handleResponse<PredictResponse>(res);
 }
 
+export interface RegisterPayload {
+  name: string;
+  email: string;
+  password: string;
+}
+
+export interface LoginPayload {
+  email: string;
+  password: string;
+}
+
 /** POST /api/auth/register */
-export async function registerUser(payload: any): Promise<User> {
+export async function registerUser(payload: RegisterPayload): Promise<User> {
   const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
     method: "POST",
     headers: getHeaders(),
@@ -174,7 +185,7 @@ export async function registerUser(payload: any): Promise<User> {
 }
 
 /** POST /api/auth/login */
-export async function loginUser(payload: any): Promise<TokenResponse> {
+export async function loginUser(payload: LoginPayload): Promise<TokenResponse> {
   const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
     method: "POST",
     headers: getHeaders(),

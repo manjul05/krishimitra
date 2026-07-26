@@ -56,19 +56,18 @@ export default function DiseaseDetailPage() {
   const [editForm, setEditForm] = useState<DiseaseUpdatePayload>({});
   const [saving, setSaving] = useState(false);
 
-  const fetchDisease = useCallback(async () => {
+  const handleRefresh = useCallback(async () => {
     if (Number.isNaN(id)) {
       setError("Invalid disease ID");
       setLoading(false);
       return;
     }
-
     setLoading(true);
-    setError(null);
     try {
       const data = await getDisease(id);
       setDisease(data);
       setEditForm(diseaseToEditForm(data));
+      setError(null);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to load disease";
       setError(msg);
@@ -79,8 +78,39 @@ export default function DiseaseDetailPage() {
   }, [id]);
 
   useEffect(() => {
-    fetchDisease();
-  }, [fetchDisease]);
+    if (Number.isNaN(id)) {
+      Promise.resolve().then(() => {
+        setError("Invalid disease ID");
+        setLoading(false);
+      });
+      return;
+    }
+    let active = true;
+    getDisease(id)
+      .then((data) => {
+        if (active) {
+          setDisease(data);
+          setEditForm(diseaseToEditForm(data));
+          setError(null);
+        }
+      })
+      .catch((err) => {
+        if (active) {
+          const msg = err instanceof Error ? err.message : "Failed to load disease";
+          setError(msg);
+          showErrorToast(msg);
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [id]);
 
   const handleStartEdit = () => {
     if (disease) {
@@ -91,12 +121,31 @@ export default function DiseaseDetailPage() {
 
   const handleSave = async () => {
     if (!disease) return;
+
+    if (
+      editForm.crop !== undefined && !editForm.crop.trim() ||
+      editForm.disease !== undefined && !editForm.disease.trim() ||
+      editForm.symptoms !== undefined && !editForm.symptoms.trim() ||
+      editForm.treatment !== undefined && !editForm.treatment.trim()
+    ) {
+      showErrorToast("Fields cannot be empty or only spaces.");
+      return;
+    }
+
     setSaving(true);
     try {
-      const updated = await updateDisease(disease.id, editForm);
+      const payload: DiseaseUpdatePayload = {
+        ...editForm,
+        crop: editForm.crop?.trim(),
+        disease: editForm.disease?.trim(),
+        symptoms: editForm.symptoms?.trim(),
+        treatment: editForm.treatment?.trim(),
+        image: editForm.image?.trim(),
+      };
+      const updated = await updateDisease(disease.id, payload);
       setDisease(updated);
       setEditForm(diseaseToEditForm(updated));
-      await fetchDisease();
+      await handleRefresh();
       setEditing(false);
       showSuccessToast("Disease Updated Successfully");
     } catch (err) {
@@ -167,7 +216,7 @@ export default function DiseaseDetailPage() {
           )}
 
           {!loading && error && (
-            <ErrorState message={error} onRetry={fetchDisease} />
+            <ErrorState message={error} onRetry={handleRefresh} />
           )}
 
           {!loading && !error && disease && (

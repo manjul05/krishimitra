@@ -66,8 +66,10 @@ export default function AIAdvisor({
       }
     } catch (err) {
       console.error("AI Advisor error:", err);
-      showErrorToast("Unable to generate AI advice. Please try again.");
-      setErrorMsg("Unable to generate AI advice. Please try again.");
+      const msg =
+        err instanceof Error ? err.message : "Unable to generate AI advice. Please try again.";
+      showErrorToast(msg);
+      setErrorMsg(msg);
     } finally {
       setLoading(false);
     }

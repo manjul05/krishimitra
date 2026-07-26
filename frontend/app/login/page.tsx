@@ -53,7 +53,7 @@ function LoginForm() {
       await login(email, password);
       showSuccessToast("Login successful! Redirecting...");
       router.push("/dashboard");
-    } catch (err: any) {
+    } catch (err) {
       showErrorToast(err instanceof Error ? err.message : "Invalid email or password");
     } finally {
       setSubmitting(false);

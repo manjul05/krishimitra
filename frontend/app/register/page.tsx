@@ -33,7 +33,7 @@ export default function RegisterPage() {
       await registerUser({ name, email, password });
       showSuccessToast("Account created successfully! Please sign in.");
       router.push("/login");
-    } catch (err: any) {
+    } catch (err) {
       showErrorToast(err instanceof Error ? err.message : "Registration failed. Try again.");
     } finally {
       setSubmitting(false);

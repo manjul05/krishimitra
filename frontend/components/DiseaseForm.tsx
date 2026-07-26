@@ -28,9 +28,21 @@ export default function DiseaseForm({ onSuccess }: DiseaseFormProps) {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (!form.crop.trim() || !form.disease.trim() || !form.symptoms.trim() || !form.treatment.trim()) {
+      showErrorToast("Please fill in all required fields (Crop, Disease Name, Symptoms, Treatment).");
+      return;
+    }
+
     setSubmitting(true);
     try {
-      await createDisease(form);
+      await createDisease({
+        ...form,
+        crop: form.crop.trim(),
+        disease: form.disease.trim(),
+        symptoms: form.symptoms.trim(),
+        treatment: form.treatment.trim(),
+        image: form.image?.trim() || "",
+      });
       showSuccessToast("Disease Added");
       setForm(initialForm);
       onSuccess?.();

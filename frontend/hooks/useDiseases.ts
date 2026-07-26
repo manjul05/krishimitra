@@ -11,10 +11,10 @@ export function useDiseases() {
 
   const fetchDiseases = useCallback(async () => {
     setLoading(true);
-    setError(null);
     try {
       const data = await getDiseases();
       setDiseases(data);
+      setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load diseases");
     } finally {
@@ -23,8 +23,29 @@ export function useDiseases() {
   }, []);
 
   useEffect(() => {
-    fetchDiseases();
-  }, [fetchDiseases]);
+    let active = true;
+    getDiseases()
+      .then((data) => {
+        if (active) {
+          setDiseases(data);
+          setError(null);
+        }
+      })
+      .catch((err) => {
+        if (active) {
+          setError(err instanceof Error ? err.message : "Failed to load diseases");
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return { diseases, loading, error, refetch: fetchDiseases };
 }

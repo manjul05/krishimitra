@@ -19,11 +19,11 @@ export default function SearchPageClient() {
 
   const [query, setQuery] = useState(initialCrop);
   const [results, setResults] = useState<Disease[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(Boolean(initialCrop));
   const [error, setError] = useState<string | null>(null);
-  const [searched, setSearched] = useState(false);
+  const [searched, setSearched] = useState(Boolean(initialCrop));
 
-  const performSearch = useCallback(async (crop: string) => {
+  const handleSearch = useCallback(async (crop: string) => {
     const trimmed = crop.trim();
     if (!trimmed) return;
 
@@ -45,10 +45,33 @@ export default function SearchPageClient() {
   }, []);
 
   useEffect(() => {
-    if (initialCrop) {
-      performSearch(initialCrop);
-    }
-  }, [initialCrop, performSearch]);
+    if (!initialCrop) return;
+    let active = true;
+
+    searchDisease(initialCrop.trim())
+      .then((data) => {
+        if (active) {
+          setResults(data);
+          setError(null);
+        }
+      })
+      .catch((err) => {
+        if (active) {
+          const msg = err instanceof Error ? err.message : "Search failed";
+          setError(msg);
+          showErrorToast(msg);
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [initialCrop]);
 
   return (
     <div className="flex min-h-screen flex-col overflow-x-hidden">
@@ -65,7 +88,7 @@ export default function SearchPageClient() {
             </p>
             <SearchBar
               defaultValue={query}
-              onSearch={performSearch}
+              onSearch={handleSearch}
               placeholder="Enter crop name (e.g. Tomato)..."
             />
           </div>
@@ -82,7 +105,7 @@ export default function SearchPageClient() {
           )}
 
           {!loading && error && (
-            <ErrorState message={error} onRetry={() => performSearch(query)} />
+            <ErrorState message={error} onRetry={() => handleSearch(query)} />
           )}
 
           {!loading && !error && searched && results.length === 0 && (
