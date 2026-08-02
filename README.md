@@ -1,181 +1,111 @@
-# KrishiMitra
+# KrishiMitra – AI Powered Crop Disease Detection & Advisory Platform
 
-AI-Powered Crop Disease Detection & Advisory Platform
+KrishiMitra is a modern, AI-powered agricultural web application designed to help farmers detect crop diseases from leaf images and receive immediate, actionable advisory recommendations in English and Hindi.
 
-## One-Line Pitch
+---
 
-KrishiMitra helps farmers identify crop diseases from images and receive AI-powered treatment recommendations to improve crop health and productivity.
+## Live Deployments
 
-## Features
+- **Frontend Application (Vercel)**: `https://YOUR-VERCEL-APP.vercel.app`
+- **Backend REST API (Render)**: `https://YOUR-RENDER-BACKEND.onrender.com`
+- **Database Service (Supabase)**: `Supabase Managed PostgreSQL`
 
-- Crop Disease Detection
-- AI-Based Advisory System
-- Disease Library with REST API
-- Multi-Crop Support
-- Farmer Dashboard with Analytics
-- Search Diseases by Crop
+---
 
 ## Tech Stack
 
 ### Frontend
-- Next.js 15+ (App Router)
-- TypeScript
-- Tailwind CSS
-- shadcn/ui components
-- Lucide React / Framer Motion
+- **Framework**: Next.js 15+ (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **UI Components**: Lucide React, Custom Responsive Components
 
 ### Backend
-- FastAPI
-- Python
-- Uvicorn
-- Pydantic
-- In-memory database (Week 4)
+- **Framework**: FastAPI
+- **Language**: Python 3.11+
+- **ORM & DB Engine**: SQLAlchemy 2.0+ & Psycopg2
+- **Validation**: Pydantic v2
+- **Security & Auth**: JWT (`python-jose`), Passlib (`bcrypt`), SlowAPI (Rate Limiting)
+- **ASGI Server**: Uvicorn & Gunicorn
 
-## Quick Start
+### Database & Storage
+- **Database**: Supabase PostgreSQL
 
-### Backend (port 8000)
+### AI & Vision APIs
+- **Vision Model**: OpenRouter Vision API
+- **Agricultural Advisory Model**: Groq Llama 3.3 70B Versatile
 
-```bash
-cd backend
-python -m venv venv
+---
 
-# Windows
-.\venv\Scripts\Activate.ps1
+## Environment Variables Configuration
 
-# macOS / Linux
-source venv/bin/activate
+### Frontend Environment Variables (`frontend/.env`)
 
-pip install -r requirements.txt
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-```
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `NEXT_PUBLIC_API_URL` | Public production backend URL | `https://krishimitra-backend.onrender.com` |
 
-API docs: http://localhost:8000/docs
+### Backend Environment Variables (`backend/.env`)
 
-### Frontend (port 3000)
+| Variable | Description | Required | Default / Example |
+|----------|-------------|----------|-------------------|
+| `HOST` | Server bind host | No | `0.0.0.0` |
+| `PORT` | Server port | No | `8000` |
+| `ALLOWED_ORIGINS` | Comma-separated CORS origins | Yes | `https://krishimitra.vercel.app,http://localhost:3000` |
+| `FRONTEND_URL` | Frontend domain for OAuth redirects | Yes | `https://krishimitra.vercel.app` |
+| `DATABASE_URL` | Supabase PostgreSQL connection string | Yes | `postgresql://postgres:pass@db.supabase.co:5432/postgres` |
+| `JWT_SECRET` | Secret key for signing JWT tokens | Yes | `your_long_random_jwt_secret_key` |
+| `OPENROUTER_API_KEY` | OpenRouter Vision API Key | Yes | `sk-or-v1-...` |
+| `OPENROUTER_MODEL` | Vision AI model | No | `openrouter/free` |
+| `OPENROUTER_TIMEOUT_SECONDS` | Timeout duration in seconds | No | `60` |
+| `GROQ_API_KEY` | Groq AI Advisory API Key | Yes | `gsk_...` |
+| `GROQ_MODEL` | Advisory LLM model | No | `llama-3.3-70b-versatile` |
+| `GOOGLE_CLIENT_ID` | Google OAuth Client ID | Optional | `xxxx.apps.googleusercontent.com` |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth Client Secret | Optional | `GOCSPX-xxxx` |
+| `GOOGLE_REDIRECT_URI` | Google OAuth Callback URL | Optional | `https://krishimitra-backend.onrender.com/api/auth/google/callback` |
 
-```bash
-cd frontend
-npm install
-npm run dev
-```
+---
 
-Open http://localhost:3000
+## Deployment Instructions
 
-Copy `frontend/.env.example` to `frontend/.env.local` if you need a custom API URL.
+### 1. Database Setup (Supabase)
+1. Log in to [Supabase](https://supabase.com) and create a new PostgreSQL database project.
+2. Retrieve your `DATABASE_URL` connection string from Project Settings > Database.
+3. Tables and initial seed data will automatically initialize on backend startup.
 
-## API Endpoints
+### 2. Backend Deployment (Render)
+1. Log in to [Render](https://render.com) and create a new **Web Service**.
+2. Connect your Git repository.
+3. Configure service settings:
+   - **Name**: `krishimitra-backend`
+   - **Root Directory**: `backend`
+   - **Environment**: `Python 3`
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+4. Add all required backend environment variables under **Environment** settings.
+5. Deploy service and copy your Render URL (e.g. `https://krishimitra-backend.onrender.com`).
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/health` | Health check |
-| GET | `/api/diseases` | List all diseases |
-| GET | `/api/diseases/{id}` | Get one disease |
-| POST | `/api/diseases` | Create disease |
-| PUT | `/api/diseases/{id}` | Update disease |
-| DELETE | `/api/diseases/{id}` | Delete disease |
-| GET | `/api/search?crop=Tomato` | Search by crop |
-| GET | `/api/stats` | Dashboard statistics |
+### 3. Frontend Deployment (Vercel)
+1. Log in to [Vercel](https://vercel.com) and import your Git repository.
+2. Configure project settings:
+   - **Framework Preset**: `Next.js`
+   - **Root Directory**: `frontend`
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `.next`
+3. Add Environment Variable:
+   - `NEXT_PUBLIC_API_URL` = `https://YOUR-RENDER-BACKEND.onrender.com`
+4. Deploy application.
 
-## Project Structure
+---
 
-```
-krishimitra-main/
-├── backend/          # FastAPI REST API
-│   └── app/
-├── frontend/         # Next.js App Router
-│   ├── app/          # Pages & routes
-│   ├── components/   # UI components
-│   ├── services/     # API client (api.ts)
-│   └── types/        # TypeScript interfaces
-└── docs/
-```
+## Known Limitations
 
-## Status
+- **Free-Tier Cold Starts**: Render web services on free tiers spin down after inactivity, causing initial API requests to take 30–50 seconds on cold start.
+- **OpenRouter Free Tier Limits**: Free vision AI models on OpenRouter may experience temporary rate limits or queue delays during peak traffic hours.
+- **Google OAuth Setup**: Google SSO requires registering your exact Render backend redirect URL in Google Cloud Console.
 
-Week 7 — Groq AI Crop Advisory Integration Complete
+---
 
-## AI Advisory Feature (Week 7)
+## License
 
-We have integrated a **Groq-powered AI Crop Advisory System** using the **llama-3.3-70b-versatile** model (with fallback to **llama3-70b-8192**). The advisor helps farmers with professional treatment and prevention strategies after a disease is predicted.
-
-### Groq & OpenRouter Setup & Environment Variables
-
-To activate the AI advisor and prediction pipelines, configure the following variables in your `backend/.env` file:
-
-```env
-# Groq API Key (Obtain from https://console.groq.com)
-GROQ_API_KEY=gsk_your_actual_groq_api_key
-
-# OpenRouter Vision API (Obtain from https://openrouter.ai)
-OPENROUTER_API_KEY=sk-or-v1-your_openrouter_api_key
-OPENROUTER_MODEL=openrouter/free
-```
-
-Make sure the `.env` file is in your `.gitignore` to prevent committing secrets.
-
-### Installation
-
-Ensure the required backend libraries are installed:
-```bash
-cd backend
-pip install groq python-dotenv
-```
-
-### API Endpoint
-
-#### POST `/api/ai/advisor`
-
-Request agricultural advice for a crop disease.
-
-- **Headers**: `Content-Type: application/json`
-- **Request Body**:
-```json
-{
-  "crop": "Tomato",
-  "disease": "Late Blight",
-  "language": "english"
-}
-```
-*Supported languages: `english`, `hindi`.*
-
-- **Example Success Response (Status 200)**:
-```json
-{
-  "success": true,
-  "data": {
-    "disease": "Late Blight",
-    "severity": "High",
-    "cause": "Late blight is caused by the fungus-like organism Phytophthora infestans...",
-    "organic_treatment": "Apply copper-based organic fungicides, prune lower leaves, spray Neem oil...",
-    "chemical_treatment": "Spray systemic fungicides containing Metalaxyl + Mancozeb...",
-    "prevention": "Ensure wide plant spacing, use drip irrigation to avoid wet leaves...",
-    "farmer_tips": "Avoid high nitrogen fertilizers as they encourage succulent, vulnerable growth..."
-  }
-}
-```
-
-- **Example Error Response (Status 400/429/502/504/500)**:
-```json
-{
-  "success": false,
-  "message": "Unable to generate AI response."
-}
-```
-
-### How to Run
-
-1. **Start Backend FastAPI Server**:
-   ```bash
-   cd backend
-   .\venv\Scripts\activate  # Windows
-   uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-   ```
-
-2. **Start Frontend Next.js Client**:
-   ```bash
-   cd frontend
-   npm install
-   npm run dev
-   ```
-   Open `http://localhost:3000` in your browser. Navigating to the **AI Advisor** tab or running a disease detection scan will allow you to generate smart recommendations.
-
+MIT License.

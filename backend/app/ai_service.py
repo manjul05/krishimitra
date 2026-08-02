@@ -214,10 +214,11 @@ def predict_disease(image_bytes: bytes) -> dict[str, Any]:
         ],
     }
 
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
     headers = {
         "Authorization": f"Bearer {OPENROUTER_API_KEY}",
         "Content-Type": "application/json",
-        "HTTP-Referer": "http://localhost:3000",
+        "HTTP-Referer": frontend_url,
         "X-Title": "KrishiMitra",
     }
 

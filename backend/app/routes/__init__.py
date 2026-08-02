@@ -369,5 +369,6 @@ def google_callback(
     token = create_access_token(data={"sub": user.email})
 
     # Redirect browser back to the Next.js frontend with the JWT
-    frontend_login_url = os.getenv("FRONTEND_URL", "http://localhost:3000") + f"/login?token={token}"
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000").rstrip("/")
+    frontend_login_url = f"{frontend_url}/login?token={token}"
     return RedirectResponse(url=frontend_login_url)

@@ -1,13 +1,11 @@
 /**
  * KrishiMitra AI Advisor API service — communicates with the FastAPI /api/ai/advisor endpoint.
- * Base URL: http://localhost:8000
  */
 
 import type { AdvisorRequest, AdvisorResponse } from "@/types/ai";
 import { ApiError } from "./api";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").replace(/\/+$/, "");
 
 function getHeaders(contentType: string | null = "application/json"): HeadersInit {
   const headers: Record<string, string> = {};

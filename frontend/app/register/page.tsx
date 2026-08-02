@@ -41,7 +41,7 @@ export default function RegisterPage() {
   };
 
   const handleGoogleLogin = () => {
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+    const apiBaseUrl = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/+$/, "");
     window.location.href = `${apiBaseUrl}/api/auth/google/login`;
   };
 

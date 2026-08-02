@@ -1,10 +1,12 @@
-print("DEBUG: utils.py loaded")
 """Utility helpers for the KrishiMitra backend."""
 
+import logging
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 
 from app.models import ErrorResponse
+
+logger = logging.getLogger("krishimitra.errors")
 
 
 def error_response(status_code: int, message: str) -> JSONResponse:
@@ -26,17 +28,12 @@ def bad_request(message: str = "Invalid request") -> HTTPException:
 
 
 async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
-    """Catch unhandled exceptions and return detailed 500 JSON response for debugging."""
-    import traceback
-    traceback.print_exception(type(exc), exc, exc.__traceback__)
-    return JSONResponse(
+    """Catch unhandled exceptions, log details securely, and return standard 500 JSON response."""
+    logger.error("Unhandled exception processing request %s: %s", request.url.path, exc, exc_info=True)
+    return error_response(
         status_code=500,
-        content={
-            "error": str(exc),
-            "type": type(exc).__name__
-        },
+        message="An unexpected server error occurred. Please try again later.",
     )
-
 
 
 async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:

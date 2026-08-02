@@ -1,6 +1,5 @@
 /**
  * KrishiMitra API service — all backend communication goes through this module.
- * Base URL: http://localhost:8000
  */
 
 import type {
@@ -12,8 +11,7 @@ import type {
   Stats,
 } from "@/types/disease";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").replace(/\/+$/, "");
 
 class ApiError extends Error {
   constructor(
