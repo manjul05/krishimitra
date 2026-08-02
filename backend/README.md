@@ -175,3 +175,42 @@ backend/
 - Pre-seeded with 8 sample crop diseases on first startup only.
 - CORS is enabled for `http://localhost:3000` (Next.js frontend).
 - AI detection uses **OpenRouter** with the free `openrouter/free` model router by default.
+
+# Live Deployment
+
+## Frontend
+
+https://krishimitra-eight-lac.vercel.app
+
+## Backend
+
+https://krishimitra-5q72.onrender.com
+
+# Tech Stack
+
+### Frontend
+- Next.js
+- TypeScript
+- Tailwind CSS
+
+### Backend
+- FastAPI
+- SQLAlchemy
+- Supabase PostgreSQL
+
+### AI
+- OpenRouter Vision API
+- Groq API
+
+### Authentication
+- JWT Authentication
+- Google OAuth
+
+### Deployment
+- Vercel
+- Render
+
+# Known Limitations
+
+- Render free tier automatically spins down after inactivity.
+- The first request after inactivity may take 30–60 seconds while the backend wakes up.
